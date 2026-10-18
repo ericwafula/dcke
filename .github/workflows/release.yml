@@ -15,11 +15,11 @@ jobs:
     env:
       TAG: ${{ inputs.tag || github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ env.TAG }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -42,7 +42,7 @@ jobs:
           echo "URL=$url" >> "$GITHUB_ENV"
           echo "SHA=$(curl -sfL "$url" | sha256sum | cut -d' ' -f1)" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ericwafula/homebrew-tools
           ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
