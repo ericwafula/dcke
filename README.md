@@ -25,3 +25,13 @@ npm install
 npm run build && npm link   # puts `dcke` on your PATH
 npm test
 ```
+
+## Releasing
+
+Bump `version` in `package.json`, commit, then tag and push:
+
+```sh
+git tag -a v0.2.0 -m "v0.2.0" && git push origin v0.2.0
+```
+
+The `release` workflow checks the tag matches `package.json`, runs the typecheck and tests, and updates `url` and `sha256` in [`ericwafula/homebrew-tools`](https://github.com/ericwafula/homebrew-tools). Users then pick it up with `brew upgrade dcke`. It pushes to the tap with the `HOMEBREW_TAP_DEPLOY_KEY` secret, a deploy key with write access to that repo only.

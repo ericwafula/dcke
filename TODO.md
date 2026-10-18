@@ -16,4 +16,4 @@
 - [x] Publish the source as the public repo `ericwafula/dcke`
 - [x] Tag v0.1.0
 - [x] Create the public tap repo `ericwafula/homebrew-tools` with `Formula/dcke.rb`, installed via `brew install ericwafula/tools/dcke` (depends on node; builds dist/ and installs dist/ and templates/ into libexec)
-- [ ] Add a release workflow that bumps the formula when a new tag is pushed
+- [x] Add a release workflow that bumps the formula when a new tag is pushed

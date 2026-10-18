@@ -1,0 +1,62 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish to the formula (e.g. v0.1.0)
+        required: true
+
+jobs:
+  bump-formula:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Check the tag matches package.json
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "$TAG" ]; then
+            echo "::error::tag $TAG does not match package.json version $version"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+      - name: Checksum the release tarball
+        run: |
+          url="https://github.com/${{ github.repository }}/archive/refs/tags/$TAG.tar.gz"
+          echo "URL=$url" >> "$GITHUB_ENV"
+          echo "SHA=$(curl -sfL "$url" | sha256sum | cut -d' ' -f1)" >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ericwafula/homebrew-tools
+          ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+          path: tap
+
+      - name: Bump Formula/dcke.rb
+        working-directory: tap
+        run: |
+          sed -i -E "s|^  url \".*\"|  url \"$URL\"|; s|^  sha256 \".*\"|  sha256 \"$SHA\"|" Formula/dcke.rb
+          if git diff --quiet; then
+            echo "Formula already points at $TAG"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "feat : bumps dcke to ${TAG#v}"
+          git push
